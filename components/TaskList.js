@@ -1,26 +1,34 @@
 import React, { useState, useEffect } from 'react'
 import { FlatList, RefreshControl } from 'react-native'
+import { useIsFocused } from '@react-navigation/native'
 
 import TaskItem from './TaskItem'
-import { getTasks } from '../api'
+import { getTasks, deleteTask } from '../api'
 
 const TaskList = () => {
 
   const [tasks, setTasks] = useState([])
   const [refreshing, setRefreshing] = useState(false)
 
+  const isFocused = useIsFocused()
+
   const loadTasks = async () => {
-      const data = await getTasks()
-      console.log('loaded');
-      setTasks(data)
+    const data = await getTasks()
+    setTasks(data)
   }
 
   useEffect(() => {
-      loadTasks()
-  }, [])
+    console.log(isFocused)
+    loadTasks()
+  }, [isFocused])
+
+  const handleDelete = async (id) => {
+    await deleteTask(id)
+    await loadTasks()
+  }
 
   const renderItem = ({ item }) => {
-      return <TaskItem task={item}/>
+    return <TaskItem task={item} handleDelete={handleDelete} />
   }
 
   const onRefresh = React.useCallback(async () => {
@@ -32,7 +40,7 @@ const TaskList = () => {
   return (
     <FlatList
       style={{
-          width: '100%',
+        width: '100%',
       }}
       data={tasks}
       keyExtractor={(item) => item.id + ''}
@@ -42,6 +50,7 @@ const TaskList = () => {
           refreshing={refreshing}
           colors={['#78e08f']}
           onRefresh={onRefresh}
+          progressBackgroundColor="#0a3d62"
         />
       }
     />
